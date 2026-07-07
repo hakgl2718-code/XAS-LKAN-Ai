@@ -40,13 +40,14 @@ export default function ImageMode() {
   const [images, setImages] = useState<GenImage[]>([]);
 
   // load provider settings for optional prompt enhancement
-  const [provider, setProvider] = useState("gemini");
-  const [llmModel, setLlmModel] = useState("");
+  const [provider, setProvider] = useState("pollinations");
+  const [llmModel, setLlmModel] = useState("openai-fast");
   const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
-    setProvider(localStorage.getItem("xa_provider") || "gemini");
-    setLlmModel(localStorage.getItem("xa_model") || "");
+    const savedProvider = localStorage.getItem("xa_provider");
+    setProvider(savedProvider === "pollinations" ? savedProvider : "pollinations");
+    setLlmModel(localStorage.getItem("xa_model") || "openai-fast");
     setApiKey(localStorage.getItem("xa_apikey") || "");
     const saved = localStorage.getItem("xa_images");
     if (saved) {

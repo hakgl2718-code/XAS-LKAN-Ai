@@ -5,7 +5,7 @@ import JSZip from "jszip";
 import type { ChatTurn, GeneratedFile } from "@/db/schema";
 import { buildPreviewHtml } from "@/lib/preview";
 
-type ProviderId = "gemini" | "openai" | "groq" | "openrouter";
+type ProviderId = "pollinations";
 
 interface ModelEntry {
   id: string;
@@ -49,6 +49,26 @@ interface HistoryItem {
   updatedAt: string;
 }
 
+const FALLBACK_PROVIDERS: ProviderInfo[] = [
+  {
+    id: "pollinations",
+    label: "XASİLKAN AI",
+    defaultModel: "openai",
+    models: ["openai", "openai-fast"],
+    modelGroups: [
+      {
+        label: "Anahtarsız",
+        models: [
+          { id: "openai", name: "XASİLKAN Kodlama" },
+          { id: "openai-fast", name: "XASİLKAN Hızlı" },
+        ],
+      },
+    ],
+    liveModels: false,
+    hasServerKey: true,
+  },
+];
+
 const EXAMPLES = [
   "Pomodoro zamanlayıcı yap, çalış/mola döngüsü ve ses uyarısı olsun",
   "Yapılacaklar listesi, sürükle-bırak ve kaydetme özelliğiyle",
@@ -58,9 +78,9 @@ const EXAMPLES = [
 ];
 
 export default function Studio() {
-  const [providers, setProviders] = useState<ProviderInfo[]>([]);
-  const [provider, setProvider] = useState<ProviderId>("gemini");
-  const [model, setModel] = useState("");
+  const [providers, setProviders] = useState<ProviderInfo[]>(FALLBACK_PROVIDERS);
+  const [provider, setProvider] = useState<ProviderId>("pollinations");
+  const [model, setModel] = useState("openai");
   const [apiKey, setApiKey] = useState("");
   const [showSettings, setShowSettings] = useState(false);
 
@@ -93,7 +113,7 @@ export default function Studio() {
     const p = localStorage.getItem("xa_provider") as ProviderId | null;
     const m = localStorage.getItem("xa_model");
     const k = localStorage.getItem("xa_apikey");
-    if (p) setProvider(p);
+    if (p === "pollinations") setProvider(p);
     if (m) setModel(m);
     if (k) setApiKey(k);
     loadHistory();
@@ -311,7 +331,7 @@ export default function Studio() {
             {keyReady ? (
               <span className="text-emerald-400">hazır</span>
             ) : (
-              <span className="text-amber-400">anahtar gerekli</span>
+              <span className="text-amber-400">hazırlanıyor</span>
             )}
           </button>
         </div>
@@ -390,31 +410,21 @@ export default function Studio() {
             </label>
             <label className="text-sm">
               <span className="mb-1 block text-slate-400">
-                API Anahtarı{" "}
-                {currentProvider?.hasServerKey && (
-                  <span className="text-emerald-400">(gerekmez — hazır)</span>
-                )}
+                API Anahtarı <span className="text-emerald-400">(gerekmez)</span>
               </span>
               <input
                 type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder={
-                  currentProvider?.hasServerKey
-                    ? "Sunucuda tanımlı — boş bırak"
-                    : "kendi anahtarın"
-                }
+                placeholder="Anahtarsız kullanım açık — boş bırak"
+                disabled
                 className="w-full rounded-lg border border-white/10 bg-slate-800 px-3 py-2"
               />
             </label>
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Gemini sunucuda hazır — hiçbir şey girmeden kullanabilirsin.{" "}
-            <span className="text-slate-400">OpenRouter</span> ile tek anahtarla
-            300+ modele (Claude, GPT, Gemini, Llama, DeepSeek, Qwen…) erişebilir,
-            “🌐 tüm modelleri getir” ile canlı listeyi çekebilirsin. Ücretsiz
-            modeller “🆓” ile işaretli. Anahtarı{" "}
-            <span className="text-slate-400">openrouter.ai/keys</span>&apos;ten alırsın.
+            API anahtarı isteyen modeller kaldırıldı. Kodlama ajanı anahtarsız
+            XASİLKAN Kodlama modeliyle, sohbet ise hızlı XASİLKAN Hızlı modeliyle çalışır.
           </p>
         </div>
       )}
@@ -448,7 +458,7 @@ export default function Studio() {
                 </div>
                 {!keyReady && (
                   <p className="mt-3 text-xs text-amber-400">
-                    Başlamak için Ayarlar&apos;dan bir API anahtarı ekle.
+                    Anahtarsız model hazırlanıyor, tekrar dene.
                   </p>
                 )}
               </div>

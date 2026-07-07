@@ -30,8 +30,24 @@ interface Msg {
   content: string;
 }
 
+const FALLBACK_PROVIDERS: ProviderInfo[] = [
+  {
+    id: "pollinations",
+    label: "XASİLKAN AI",
+    defaultModel: "openai",
+    models: ["openai"],
+    modelGroups: [
+      {
+        label: "Anahtarsız",
+        models: [{ id: "openai", name: "XASİLKAN AI" }],
+      },
+    ],
+    hasServerKey: true,
+  },
+];
+
 export default function ChatMode() {
-  const [providers, setProviders] = useState<ProviderInfo[]>([]);
+  const [providers, setProviders] = useState<ProviderInfo[]>(FALLBACK_PROVIDERS);
   // Chat has its OWN provider settings (independent of app mode) and defaults
   // to the keyless "XASİLKAN AI" so it always answers, even if Gemini quota is out.
   const [provider, setProvider] = useState<ProviderId>("pollinations");
@@ -47,7 +63,11 @@ export default function ChatMode() {
   useEffect(() => {
     fetch("/api/providers")
       .then((r) => r.json())
-      .then((j) => setProviders(j.providers ?? []))
+      .then((j) => {
+        if (Array.isArray(j.providers) && j.providers.length) {
+          setProviders(j.providers);
+        }
+      })
       .catch(() => {});
     const p = localStorage.getItem("xa_chat_provider") as ProviderId | null;
     const m = localStorage.getItem("xa_chat_model");

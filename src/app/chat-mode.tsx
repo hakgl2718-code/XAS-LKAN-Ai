@@ -3,11 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type ProviderId =
-  | "pollinations"
-  | "gemini"
-  | "openai"
-  | "groq"
-  | "openrouter";
+  | "pollinations";
 
 interface ModelEntry {
   id: string;
@@ -34,12 +30,15 @@ const FALLBACK_PROVIDERS: ProviderInfo[] = [
   {
     id: "pollinations",
     label: "XASİLKAN AI",
-    defaultModel: "openai",
-    models: ["openai"],
+    defaultModel: "openai-fast",
+    models: ["openai-fast", "openai"],
     modelGroups: [
       {
         label: "Anahtarsız",
-        models: [{ id: "openai", name: "XASİLKAN AI" }],
+        models: [
+          { id: "openai-fast", name: "XASİLKAN Hızlı" },
+          { id: "openai", name: "XASİLKAN Kodlama" },
+        ],
       },
     ],
     hasServerKey: true,
@@ -48,8 +47,7 @@ const FALLBACK_PROVIDERS: ProviderInfo[] = [
 
 export default function ChatMode() {
   const [providers, setProviders] = useState<ProviderInfo[]>(FALLBACK_PROVIDERS);
-  // Chat has its OWN provider settings (independent of app mode) and defaults
-  // to the keyless "XASİLKAN AI" so it always answers, even if Gemini quota is out.
+  // Chat has its own provider settings and defaults to the keyless XASİLKAN AI.
   const [provider, setProvider] = useState<ProviderId>("pollinations");
   const [model, setModel] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -72,7 +70,7 @@ export default function ChatMode() {
     const p = localStorage.getItem("xa_chat_provider") as ProviderId | null;
     const m = localStorage.getItem("xa_chat_model");
     const k = localStorage.getItem("xa_apikey");
-    if (p) setProvider(p);
+    if (p === "pollinations") setProvider(p);
     if (m) setModel(m);
     if (k) setApiKey(k);
     const saved = localStorage.getItem("xa_chat");
@@ -261,7 +259,7 @@ export default function ChatMode() {
         </div>
         {!keyReady && (
           <p className="mx-auto mt-2 max-w-3xl text-xs text-amber-400">
-            Bu sağlayıcı için API anahtarı gerekli (Gemini hazır — onu seç).
+            Bu model anahtarsız çalışır; tekrar dene.
           </p>
         )}
       </div>
